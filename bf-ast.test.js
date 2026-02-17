@@ -3,7 +3,7 @@
  * @copyright 2026 PlasticHeart
  */
 
-window.addEventListener('BrainfuckLoaded', () => {
+window.addEventListener('BrainfuckJitLoaded', () => {
     /**
      * @param {T} a
      * @param {T} b
