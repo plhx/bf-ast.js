@@ -4,7 +4,7 @@
  */
 
 !(root => {
-    const { Ast, Root, Next, Prev, Incr, Decr, Get, Put, While, Undefined, EOFBehavior, parse } = root.Brainfuck
+    const { Ast, Root, Next, Prev, Incr, Decr, While, Undefined, Interpreter, parse } = root.Brainfuck
 
     class JitAst extends Ast {
         /**
@@ -202,65 +202,37 @@
         return ast
     }
 
-    /**
-     * @param {string} code
-     * @param {Object} options
-     * @param {[number]} options.memory
-     * @param {[string]} options.input
-     * @param {[string]} options.output
-     * @param {EOFBehavior} options.eof
-     * @returns {void}
-     */
-    function execute(code, { memory, input, output, eof } = {}) {
-        let index = 0
-        memory = (memory?.length ?? 0) > 0 ? memory : [0]
-        input ??= []
-        output ??= []
-        eof ??= EOFBehavior.VALUE_0
-
-        function _execute(ast) {
-            if (ast instanceof Root) {
-                for (const x of ast.children) {
-                    _execute(x)
-                }
-            } else if (ast instanceof Move) {
-                if ((index += ast.value) < 0) {
-                    throw new Error('memory error')
-                }
-                memory[index] ??= 0
-            } else if (ast instanceof Add) {
-                memory[index] = (memory[index] + ast.value) & 0xff
-            } else if (ast instanceof Load) {
-                memory[index] = ast.value
-            } else if (ast instanceof Get) {
-                let value = input.shift()?.charCodeAt(0)
-                if (value == null) {
-                    if (eof.equals(EOFBehavior.VALUE_0)) {
-                        value = 0
-                    } else if (eof.equals(EOFBehavior.VALUE_255)) {
-                        value = 255
-                    } else {
-                        value = memory[index]
-                    }
-                }
-                memory[index] = value & 0xff
-            } else if (ast instanceof Put) {
-                output.push(String.fromCodePoint(memory[index]))
-            } else if (ast instanceof While) {
-                while (memory[index]) {
-                    for (const x of ast.children) {
-                        _execute(x)
-                    }
-                }
-            }
+    class JitInterpreter extends Interpreter {
+        /**
+         * @param {string} code
+         * @returns {Interpreter}
+         */
+        load(code) {
+            this._ast = optimize(parse(code))
+            return this
         }
 
-        const ast = parse(code)
-        const optimized = optimize(ast)
-        _execute(optimized)
+        /**
+         * @param {Ast} ast
+         * @returns {void}
+         */
+        step(ast) {
+            if (ast instanceof Move) {
+                if ((this._index += ast.value) < 0) {
+                    throw new Error(`memory error: ${this._index}`)
+                }
+                this._memory[this._index] ??= 0
+            } else if (ast instanceof Add) {
+                this._memory[this._index] = (this._memory[this._index] + ast.value) & 0xff
+            } else if (ast instanceof Load) {
+                this._memory[this._index] = ast.value
+            } else {
+                super.step(ast)
+            }
+        }
     }
 
-    Object.assign(root.Brainfuck, { execute })
+    Object.assign(root.Brainfuck, { Interpreter: JitInterpreter })
 
     root.dispatchEvent(new Event('BrainfuckJitLoaded'))
 })(window)

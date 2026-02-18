@@ -57,25 +57,26 @@ window.addEventListener('BrainfuckJitLoaded', () => {
     }
 
     test('null', () => {
-        const code = ''
-        const output = []
-        Brainfuck.execute(code, { output })
-        assertEq('', output.join(''))
+        const result = new Brainfuck.Interpreter()
+            .run('')
+            .output()
+        assertEq(result, '')
     })
 
     test('echo', () => {
-        const code = ',[.,]'
-        const input = 'Hello, world!'
-        const output = []
-        Brainfuck.execute(code, { input: [...input], output })
-        assertEq(input, output.join(''))
+        const result = new Brainfuck.Interpreter()
+            .input('Hello, world!')
+            .run(',[.,]')
+            .output()
+        assertEq(result, 'Hello, world!')
     })
 
     test('Hello, World!', () => {
         const code = '--------[>+>+++++>-->-->--->++++>------<<<<<<<-------]>.>---.>----..>-.>++++.>.>+++++++.<<<.+++.<.<-.>>>>+.'
-        const output = []
-        Brainfuck.execute(code, { output })
-        assertEq('Hello, World!', output.join(''))
+        const result = new Brainfuck.Interpreter()
+            .run(code)
+            .output()
+        assertEq(result, 'Hello, World!')
     })
 
     test('square', () => {
@@ -84,8 +85,9 @@ window.addEventListener('BrainfuckJitLoaded', () => {
             >>>+[[-]++++++>>>]<<<[[<++++++++<++>>-]+<.<[>----<-]<]
             <<[>>>>>[>>>[-]+++++++++<[>-<-]+++++++++>[-[<->-]+[<<<]]<[>+<-]>]<<-]<<-
         ]`
-        const output = []
-        Brainfuck.execute(code, { output })
-        assertEq(Array.from({ length: 101 }, (_, i) => i * i).join('\n') + '\n', output.join(''))
+        const result = new Brainfuck.Interpreter()
+            .run(code)
+            .output()
+        assertEq(result, Array.from({ length: 101 }, (_, i) => i * i).join('\n') + '\n')
     })
 })

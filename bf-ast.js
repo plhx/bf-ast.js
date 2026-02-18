@@ -172,68 +172,132 @@
         return ast
     }
 
-    /**
-     * @param {string} code
-     * @param {Object} options
-     * @param {[number]} options.memory
-     * @param {[string]} options.input
-     * @param {[string]} options.output
-     * @param {EOFBehavior} options.eof
-     * @returns {void}
-     */
-    function execute(code, { memory, input, output, eof } = {}) {
-        let index = 0
-        memory = (memory?.length ?? 0) > 0 ? memory : [0]
-        input ??= []
-        output ??= []
-        eof ??= EOFBehavior.VALUE_0
+    class Interpreter {
+        #input
+        #output
+        #eof
 
-        function _execute(ast) {
-            if (ast instanceof Root) {
-                for (const x of ast.children) {
-                    _execute(x)
-                }
-            } else if (ast instanceof Next) {
-                memory[++index] ??= 0
-            } else if (ast instanceof Prev) {
-                if (--index < 0) {
-                    throw new Error('memory error')
-                }
-            } else if (ast instanceof Incr) {
-                memory[index] = (memory[index] + 1) & 0xff
-            } else if (ast instanceof Decr) {
-                memory[index] = (memory[index] - 1) & 0xff
-            } else if (ast instanceof Get) {
-                let value = input.shift()?.charCodeAt(0)
-                if (value == null) {
-                    if (eof.equals(EOFBehavior.VALUE_0)) {
-                        value = 0
-                    } else if (eof.equals(EOFBehavior.VALUE_255)) {
-                        value = 255
-                    } else {
-                        value = memory[index]
+        /**
+         * @param {Object} options
+         * @param {EOFBehavior} options.eof
+         */
+        constructor({ eof } = {}) {
+            this._index = 0
+            this._memory = [0]
+            this.#input = []
+            this.#output = []
+            this.#eof = eof ?? EOFBehavior.VALUE_0
+            this._ast = new Root([])
+        }
+
+        /**
+         * @param {Iterable<T>} values
+         * @returns {Interpreter}
+         */
+        input(values) {
+            if (values instanceof Uint8Array) {
+                this.#input.push(...values)
+            } else if (Array.isArray(values)) {
+                this.#input.push(values.map(x => +x & 0xff))
+            } else if (typeof values == 'string') {
+                const encoder = new TextEncoder()
+                this.#input.push(...encoder.encode(values))
+            } else {
+                throw new Error(`invalid input: ${values}`)
+            }
+            return this
+        }
+
+        /**
+         * @param {string} code
+         * @returns {Interpreter}
+         */
+        load(code) {
+            this._ast = parse(code)
+            return this
+        }
+
+        /**
+         * @param {[Ast]} asts
+         * @returns {Ast?}
+         */
+        *next(asts) {
+            for (const ast of (asts ?? [this._ast])) {
+                if (ast instanceof Root) {
+                    for (const x of this.next(ast.children)) {
+                        yield x
                     }
-                }
-                memory[index] = value & 0xff
-            } else if (ast instanceof Put) {
-                output.push(String.fromCodePoint(memory[index]))
-            } else if (ast instanceof While) {
-                while (memory[index]) {
-                    for (const x of ast.children) {
-                        _execute(x)
+                } else if (ast instanceof While) {
+                    while (this._memory[this._index]) {
+                        for (const x of this.next(ast.children)) {
+                            yield x
+                        }
                     }
+                } else {
+                    yield ast
                 }
             }
         }
 
-        _execute(parse(code))
+        /**
+         * @returns {string}
+         */
+        output() {
+            const decoder = new TextDecoder()
+            return decoder.decode(new Uint8Array(this.#output))
+        }
+
+        /**
+         * @param {string} code
+         * @returns {Interpreter}
+         */
+        run(code) {
+            this.load(code)
+            for (const ast of this.next()) {
+                this.step(ast)
+            }
+            return this
+        }
+
+        /**
+         * @param {Ast} ast
+         * @returns {void}
+         */
+        step(ast) {
+            if (ast instanceof Next) {
+                this._memory[++this._index] ??= 0
+            } else if (ast instanceof Prev) {
+                if (--this._index < 0) {
+                    throw new Error(`memory error: ${this._index}`)
+                }
+            } else if (ast instanceof Incr) {
+                this._memory[this._index] = (this._memory[this._index] + 1) & 0xff
+            } else if (ast instanceof Decr) {
+                this._memory[this._index] = (this._memory[this._index] - 1) & 0xff
+            } else if (ast instanceof Get) {
+                let value = this.#input.shift()
+                if (value == null) {
+                    if (this.#eof.equals(EOFBehavior.VALUE_0)) {
+                        value = 0
+                    } else if (this.#eof.equals(EOFBehavior.VALUE_255)) {
+                        value = 255
+                    } else {
+                        value = this._memory[this._index]
+                    }
+                }
+                this._memory[this._index] = value & 0xff
+            } else if (ast instanceof Put) {
+                this.#output.push(this._memory[this._index])
+            }
+        }
     }
 
     Object.assign(root, {
         Brainfuck: {
             Ast, Root, Next, Prev, Incr, Decr, Get, Put, While, Undefined,
             EOFBehavior,
-            parse, execute
+            Interpreter,
+            parse,
         }
     })
 
