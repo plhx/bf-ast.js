@@ -9,7 +9,7 @@
     class JitAst extends Ast {
         /**
          * @param {Ast} other
-         * @returns {[Ast]}
+         * @returns {Ast[]}
          */
         optimize(other) { return [this, other] }
     }
@@ -119,8 +119,8 @@
     }
 
     /**
-     * @param {[Ast]} asts
-     * @returns {[Ast]}
+     * @param {Ast[]} asts
+     * @returns {Ast[]}
      */
     function aggregateJitAstArray(asts) {
         const output = []
@@ -135,7 +135,7 @@
     /**
      * @param {Ast} lhs
      * @param {Ast} rhs
-     * @returns {[Ast]}
+     * @returns {Ast[]}
      */
     function aggregateJitAstPredicate(lhs, rhs) {
         if (lhs && rhs) {

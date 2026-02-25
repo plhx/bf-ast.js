@@ -13,7 +13,7 @@
 
     class Root extends Ast {
         /**
-         * @param {[Ast]} children
+         * @param {Ast[]} children
          */
         constructor(children) {
             super()
@@ -70,7 +70,7 @@
 
     class While extends Ast {
         /**
-         * @param {[Ast]} children
+         * @param {Ast[]} children
          */
         constructor(children) {
             super()
@@ -141,7 +141,7 @@
 
     /**
      * @param {string} code
-     * @returns {[Ast]}
+     * @returns {Ast[]}
      */
     function parseCode(code) {
         return parseCodeIter(code[Symbol.iterator]())
@@ -149,7 +149,7 @@
 
     /**
      * @param {Iterable<string>} iter
-     * @returns {[Ast]}
+     * @returns {Ast[]}
      */
     function parseCodeIter(iter) {
         const ast = []
@@ -218,7 +218,7 @@
         }
 
         /**
-         * @param {[Ast]} asts
+         * @param {Ast[]} asts
          * @returns {Ast?}
          */
         *next(asts) {
