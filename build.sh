@@ -8,12 +8,12 @@ npx esbuild "${PKG_DIR}/${LIB_NAME}.js" \
     --bundle \
     --minify \
     --target=es2020 \
-    --format=esm \
+    --format=iife \
     --outfile="${PKG_DIR}/${LIB_NAME}.min.js"
 
 npx esbuild "${PKG_DIR}/${LIB_JIT_NAME}.js" \
     --bundle \
     --minify \
     --target=es2020 \
-    --format=esm \
+    --format=iife \
     --outfile="${PKG_DIR}/${LIB_JIT_NAME}.min.js"
