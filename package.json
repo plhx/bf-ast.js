@@ -1,0 +1,13 @@
+{
+    "name": "bf-ast",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "test": "vitest run",
+        "build": "sh build.sh"
+    },
+    "devDependencies": {
+        "esbuild": "^0.25.0",
+        "vitest": "^3.0.0"
+    }
+}

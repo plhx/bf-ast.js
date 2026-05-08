@@ -1,30 +1,34 @@
 /**
- * @file bf-ast.test.js
+ * @file bf-ast.vitest.test.js
  * @copyright 2026 PlasticHeart
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+import { describe, test, expect } from 'vitest'
+import { Interpreter } from '../src/bf-ast.js'
+import { JitInterpreter } from '../src/bf-ast-jit.js'
+
+function runTests(InterpreterClass) {
     test('null', () => {
-        const result = new Brainfuck.Interpreter()
+        const result = new InterpreterClass()
             .run('')
             .output()
-        assertEq(result, '')
+        expect(result).toBe('')
     })
 
     test('echo', () => {
-        const result = new Brainfuck.Interpreter()
+        const result = new InterpreterClass()
             .input('Hello, world!')
             .run(',[.,]')
             .output()
-        assertEq(result, 'Hello, world!')
+        expect(result).toBe('Hello, world!')
     })
 
     test('Hello, World!', () => {
         const code = '--------[>+>+++++>-->-->--->++++>------<<<<<<<-------]>.>---.>----..>-.>++++.>.>+++++++.<<<.+++.<.<-.>>>>+.'
-        const result = new Brainfuck.Interpreter()
+        const result = new InterpreterClass()
             .run(code)
             .output()
-        assertEq(result, 'Hello, World!')
+        expect(result).toBe('Hello, World!')
     })
 
     test('square', () => {
@@ -33,9 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
             >>>+[[-]++++++>>>]<<<[[<++++++++<++>>-]+<.<[>----<-]<]
             <<[>>>>>[>>>[-]+++++++++<[>-<-]+++++++++>[-[<->-]+[<<<]]<[>+<-]>]<<-]<<-
         ]`
-        const result = new Brainfuck.Interpreter()
+        const result = new InterpreterClass()
             .run(code)
             .output()
-        assertEq(result, Array.from({ length: 101 }, (_, i) => i * i).join('\n') + '\n')
+        expect(result).toBe(Array.from({ length: 101 }, (_, i) => i * i).join('\n') + '\n')
     })
+}
+
+describe('Interpreter', () => {
+    runTests(Interpreter)
+})
+
+describe('JitInterpreter', () => {
+    runTests(JitInterpreter)
 })

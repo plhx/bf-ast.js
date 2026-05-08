@@ -1,19 +1,23 @@
 #!/bin/sh
 
-PKG_DIR="."
-LIB_NAME="bf-ast"
-LIB_JIT_NAME="bf-ast-jit"
+SRC_DIR="src"
+OUT_DIR="."
 
-npx esbuild "${PKG_DIR}/${LIB_NAME}.js" \
-    --bundle \
-    --minify \
-    --target=es2020 \
-    --format=iife \
-    --outfile="${PKG_DIR}/${LIB_NAME}.min.js"
+build() {
+    local name="$1"
+    local src="${SRC_DIR}/${name}.js"
+    local out="${OUT_DIR}/${name}.min.js"
 
-npx esbuild "${PKG_DIR}/${LIB_JIT_NAME}.js" \
-    --bundle \
-    --minify \
-    --target=es2020 \
-    --format=iife \
-    --outfile="${PKG_DIR}/${LIB_JIT_NAME}.min.js"
+    echo "Building ${src} ..."
+    npx esbuild "${src}" \
+        --bundle \
+        --minify \
+        --platform=browser \
+        --target=es2020 \
+        --format=iife \
+        --outfile="${out}"
+    echo "Done: ${out} ($(wc -c < "${out}") bytes)"
+}
+
+build bf-ast
+build bf-ast-jit
