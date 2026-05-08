@@ -191,7 +191,7 @@
         }
 
         /**
-         * @param {Iterable<T>} values
+         * @param {Uint8Array | number[] | string} values
          * @returns {Interpreter}
          */
         input(values) {
@@ -218,8 +218,8 @@
         }
 
         /**
-         * @param {Ast[]} asts
-         * @returns {Ast?}
+         * @param {Ast[]} [asts]
+         * @returns {Generator<Ast>}
          */
         *next(asts) {
             for (const ast of (asts ?? [this._ast])) {

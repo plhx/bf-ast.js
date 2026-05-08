@@ -25,7 +25,7 @@
 
         /**
          * @param {Ast} other
-         * @returns {JitAst}
+         * @returns {Ast[]}
          */
         optimize(other) {
             if (other instanceof Next) {
@@ -50,7 +50,7 @@
 
         /**
          * @param {Ast} other
-         * @returns {JitAst}
+         * @returns {Ast[]}
          */
         optimize(other) {
             if (other instanceof Incr) {
@@ -75,7 +75,7 @@
 
         /**
          * @param {Ast} other
-         * @returns {JitAst}
+         * @returns {Ast[]}
          */
         optimize(other) {
             if (other instanceof Incr) {
