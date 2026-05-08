@@ -3,9 +3,9 @@
  * @copyright 2026 PlasticHeart
  */
 
-!(root => {
-    const { Ast, Root, Next, Prev, Incr, Decr, While, Undefined, Interpreter, parse } = root.Brainfuck
+import { Ast, Root, Next, Prev, Incr, Decr, While, Undefined, Interpreter, parse } from './bf-ast.js'
 
+const { JitInterpreter } = (() => {
     class JitAst extends Ast {
         /**
          * @param {Ast} other
@@ -78,11 +78,7 @@
          * @returns {Ast[]}
          */
         optimize(other) {
-            if (other instanceof Incr) {
-                return [new Load(this.value + 1)]
-            } else if (other instanceof Decr) {
-                return [new Load(this.value - 1)]
-            } else if (other instanceof Add) {
+            if (other instanceof Add) {
                 return [new Load(this.value + other.value)]
             } else if (other instanceof Load) {
                 return [other]
@@ -205,7 +201,7 @@
     class JitInterpreter extends Interpreter {
         /**
          * @param {string} code
-         * @returns {Interpreter}
+         * @returns {JitInterpreter}
          */
         load(code) {
             this._ast = optimize(parse(code))
@@ -232,7 +228,11 @@
         }
     }
 
-    Object.assign(root.Brainfuck, { Interpreter: JitInterpreter })
+    if (typeof globalThis != 'undefined') {
+        Object.assign(globalThis.Brainfuck ??= {}, { Interpreter: JitInterpreter })
+    }
 
-    root.dispatchEvent(new Event('BrainfuckJitLoaded'))
-})(window)
+    return { JitInterpreter }
+})()
+
+export { JitInterpreter }

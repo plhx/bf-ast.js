@@ -3,7 +3,7 @@
  * @copyright 2026 PlasticHeart
  */
 
-!(root => {
+const { Ast, Root, Next, Prev, Incr, Decr, Get, Put, While, Undefined, EOFBehavior, Interpreter, parse } = (() => {
     class Ast {
         /**
          * @returns {string}
@@ -178,8 +178,8 @@
         #eof
 
         /**
-         * @param {Object} options
-         * @param {EOFBehavior} options.eof
+         * @param {Object} [options]
+         * @param {EOFBehavior} [options.eof]
          */
         constructor({ eof } = {}) {
             this._index = 0
@@ -292,14 +292,18 @@
         }
     }
 
-    Object.assign(root, {
-        Brainfuck: {
-            Ast, Root, Next, Prev, Incr, Decr, Get, Put, While, Undefined,
-            EOFBehavior,
-            Interpreter,
-            parse,
-        }
-    })
+    if (typeof globalThis != 'undefined') {
+        Object.assign(globalThis, {
+            Brainfuck: {
+                Ast, Root, Next, Prev, Incr, Decr, Get, Put, While, Undefined,
+                EOFBehavior,
+                Interpreter,
+                parse,
+            }
+        })
+    }
 
-    root.dispatchEvent(new Event('BrainfuckLoaded'))
-})(window)
+    return { Ast, Root, Next, Prev, Incr, Decr, Get, Put, While, Undefined, EOFBehavior, Interpreter, parse }
+})()
+
+export { Ast, Root, Next, Prev, Incr, Decr, Get, Put, While, Undefined, EOFBehavior, Interpreter, parse }
